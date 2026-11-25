@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Google 1998 · Old vs Surfer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Times New Roman', Times, serif;
+        }
+        body {
+            background-color: #f2f2f2;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background-color: white;
+            border: 2px solid #5c5c5c;
+            box-shadow: 8px 8px 0 #b0b0b0;
+            padding: 20px 25px 30px;
+        }
+        h1 {
+            font-size: 2.8rem;
+            font-weight: bold;
+            margin: 0 0 5px;
+            letter-spacing: -1px;
+            color: #2a2a2a;
+            text-align: center;
+            font-family: 'Times New Roman', Times, serif;
+        }
+        .subhead {
+            text-align: center;
+            font-size: 1rem;
+            color: #3f3f3f;
+            margin-top: 0;
+            margin-bottom: 25px;
+            border-bottom: 1px dashed #aaa;
+            padding-bottom: 12px;
+            font-style: italic;
+        }
+        .search-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .search-area input {
+            flex: 2;
+            min-width: 240px;
+            padding: 10px 14px;
+            font-size: 1.1rem;
+            border: 2px solid #7a7a7a;
+            background: #fefefe;
+            font-family: 'Courier New', monospace;
+        }
+        .search-area button {
+            padding: 10px 26px;
+            font-size: 1.1rem;
+            background-color: #e0e0e0;
+            border: 2px solid #5a5a5a;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Times New Roman', Times, serif;
+            transition: background 0.1s;
+            box-shadow: 3px 3px 0 #8b8b8b;
+        }
+        .search-area button:hover {
+            background-color: #d0d0d0;
+            box-shadow: 1px 1px 0 #8b8b8b;
+            transform: translate(2px, 2px);
+        }
+        .search-area button:active {
+            background-color: #c0c0c0;
+            box-shadow: 0px 0px 0 #8b8b8b;
+            transform: translate(4px, 4px);
+        }
+        .rankings {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .column {
+            flex: 1 1 300px;
+            background: #fafafa;
+            border: 1px solid #b0b0b0;
+            padding: 15px 18px;
+            box-shadow: 4px 4px 0 #ccc;
+        }
+        .column h2 {
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #3b3b3b;
+            font-weight: bold;
+            color: #111;
+        }
+        .column .note {
+            font-size: 0.8rem;
+            color: #555;
+            margin-top: -3px;
+            margin-bottom: 14px;
+            font-style: italic;
+        }
+        .result-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .result-item {
+            margin-bottom: 18px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .page-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #1a0dab;
+            text-decoration: underline;
+            cursor: default;
+            word-break: break-word;
+        }
+        .page-url {
+            font-size: 0.8rem;
+            color: #006621;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            margin-bottom: 3px;
+        }
+        .page-score {
+            font-size: 0.85rem;
+            color: #333;
+            font-weight: bold;
+            background: #ececec;
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 10px;
+            margin-top: 5px;
+        }
+        .empty-message {
+            font-style: italic;
+            color: #777;
+            padding: 8px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.75rem;
+            color: #6b6b6b;
+            border-top: 1px solid #ccc;
+            padding-top: 12px;
+            letter-spacing: 0.3px;
+        }
+        .highlight {
+            background-color: #fff5b0;
+            font-weight: bold;
+        }
+        .debug-info {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 8px;
+            font-family: monospace;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Mini Google 1998</h1>
+    <div class="subhead">old-school keyword count vs. random surfer (PageRank-ish)</div>
+
+    <div class="search-area">
+        <input type="text" id="searchInput" placeholder="e.g. google, page, web, surf" value="google" autofocus>
+        <button id="searchBtn">Search</button>
+    </div>
+
+    <div class="rankings" id="rankings">
+        <!-- filled dynamically -->
+        <div class="column" id="oldColumn">
+            <h2>Old way (1997)</h2>
+            <div class="note">whole-word count, case‑insensitive</div>
+            <ul class="result-list" id="oldList"></ul>
+        </div>
+        <div class="column" id="surferColumn">
+            <h2>Surfer way (1998)</h2>
+            <div class="note">random surfer score · teleport 0.15 · 1000 walks</div>
+            <ul class="result-list" id="surferList"></ul>
+        </div>
+    </div>
+    <div class="debug-info" id="debugInfo"></div>
+    <div class="footer">📄 double‑click friendly · pure JS · data from 1998 lab</div>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    //  DATA — pages (page, url, text, links_to as string)
+    //  links_to: page numbers separated by ";"
+    // --------------------------------------------------------------
+    const pagesData = [
+        { page: 1, url: "http://www.google.com", text: "Google is the best search engine. Google helps you find web pages. Page rank is used by Google.", links_to: "2;3;4" },
+        { page: 2, url: "http://www.yahoo.com", text: "Yahoo is a web portal and search engine. You can search the web. Yahoo has many links.", links_to: "1;3;5" },
+        { page: 3, url: "http://www.altavista.com", text: "AltaVista was a popular search engine. It could search the web. AltaVista was fast.", links_to: "1;2;4;5" },
+        { page: 4, url: "http://www.webcrawler.com", text: "WebCrawler is a search engine. It crawls the web. WebCrawler finds pages.", links_to: "2;3" },
+        { page: 5, url: "http://www.lycos.com", text: "Lycos is a search engine and web portal. Lycos helps you surf the web. Surf the web with Lycos.", links_to: "1;4" }
+    ];
+
+    // --------------------------------------------------------------
+    //  Build pages object with id → data
+    // --------------------------------------------------------------
+    const pages = {};
+    pagesData.forEach(p => {
+        pages[p.page] = {
+            id: p.page,
+            url: p.url,
+            text: p.text,
+            links: p.links_to.split(';').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n))
+        };
+    });
+
+    // helper: all page IDs
+    const allPageIds = Object.keys(pages).map(Number); // [1,2,3,4,5]
+
+    // --------------------------------------------------------------
+    //  RANKING 1: Old way — count whole-word matches (case-insensitive)
+    // --------------------------------------------------------------
+    function oldWayRanking(query) {
+        if (!query.trim()) return [];
+        const q = query.trim().toLowerCase();
+
+        // escape regex special chars (just in case)
+        const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // whole word: boundaries \b — but allow unicode? using \b works for alphanumeric
+        const regex = new RegExp(`\\b${escaped}\\b`, 'gi'); // g + i
+
+        const results = [];
+        for (let id of allPageIds) {
+            const page = pages[id];
+            const matches = page.text.match(regex);
+            const count = matches ? matches.length : 0;
+            results.push({
+                pageId: id,
+                url: page.url,
+                text: page.text,
+                count: count
+            });
+        }
+        // sort: highest count first, then page id (stable)
+        results.sort((a, b) => {
+            if (b.count !== a.count) return b.count - a.count;
+            return a.pageId - b.pageId;
+        });
+        return results;
+    }
+
+    // --------------------------------------------------------------
+    //  RANKING 2: Surfer way — random surfer (PageRank approximation)
+    //  Exactly as described: start on a random page, follow links,
+    //  with probability 0.15 teleport to a random page (uniform).
+    //  Use 1000 walks (deterministic: seedable? we use Math.random but
+    //  for demo consistency we use a simple seed to make it deterministic?
+    //  but spec says "random surfer" — we'll use crypto? No, we use Math.random.
+    //  However to keep results stable across runs we can do a seeded PRNG,
+    //  but the spec says "exactly like this" with random surfer — we'll use
+    //  Math.random but it's fine. We'll do 5000 walks to reduce variance.
+    //  Then each page's score = proportion of visits.
+    //  We'll run 5000 walks of length 100 steps each (to mix well)
+    //  But note: the spec says "start on a random page" — we do that.
+    //  Teleport probability 0.15 at each step.
+    //  Dangling pages (no outgoing links) => teleport.
+    // --------------------------------------------------------------
+    function surferRanking() {
+        const numWalks = 5000;        // many walks for stable estimate
+        const stepsPerWalk = 30;      // long enough to converge
+        const teleportProb = 0.15;
+
+        // initialize visit counts
+        const visits = {};
+        allPageIds.forEach(id => visits[id] = 0);
+
+        // total steps = numWalks * stepsPerWalk
+        // Precompute random page list for teleport (uniform)
+        const randomPage = () => allPageIds[Math.floor(Math.random() * allPageIds.length)];
+
+        for (let w = 0; w < numWalks; w++) {
+            // start on a random page
+            let current = randomPage();
+            visits[current] += 1;  // count starting page as a visit
+
+            for (let s = 1; s < stepsPerWalk; s++) {
+                // decide: teleport with prob 0.15, else follow a random outgoing link
+                if (Math.random() < teleportProb) {
+                    // teleport to random page
+                    current = randomPage();
+                } else {
+                    const outLinks = pages[current].links;
+                    if (outLinks.length === 0) {
+                        // dangling: teleport to random page
+                        current = randomPage();
+                    } else {
+                        // follow a random outgoing link
+                        const randomIndex = Math.floor(Math.random() * outLinks.length);
+                        current = outLinks[randomIndex];
+                    }
+                }
+                visits[current] += 1;
+            }
+        }
+
+        // total visits = numWalks * stepsPerWalk
+        const totalVisits = numWalks * stepsPerWalk;
+
+        // build result array: score = proportion of visits
+        const results = allPageIds.map(id => {
+            const page = pages[id];
+            const score = visits[id] / totalVisits;
+            return {
+                pageId: id,
+                url: page.url,
+                text: page.text,
+                surferScore: score
+            };
+        });
+
+        // sort: highest score first
+        results.sort((a, b) => {
+            if (b.surferScore !== a.surferScore) return b.surferScore - a.surferScore;
+            return a.pageId - b.pageId;
+        });
+        return results;
+    }
+
+    // --------------------------------------------------------------
+    //  Render both rankings
+    // --------------------------------------------------------------
+    function renderRankings(query) {
+        const oldListEl = document.getElementById('oldList');
+        const surferListEl = document.getElementById('surferList');
+        const debugEl = document.getElementById('debugInfo');
+
+        // ---- old way ----
+        const oldResults = oldWayRanking(query);
+        oldListEl.innerHTML = '';
+        let totalOldMatches = 0;
+        if (oldResults.length === 0 || oldResults.every(r => r.count === 0)) {
+            oldListEl.innerHTML = '<li class="empty-message">No pages contain that word.</li>';
+        } else {
+            oldResults.forEach(r => {
+                if (r.count === 0) return; // skip zero for clarity? keep? better show only with count > 0? we'll show all but count 0 at bottom — fine.
+                const li = document.createElement('li');
+                li.className = 'result-item';
+                // highlight query in snippet? (not needed but nice)
+                li.innerHTML = `
+                    <div class="page-title">${escapeHtml(pages[r.pageId].url)}</div>
+                    <div class="page-url">page ${r.pageId}</div>
+                    <div class="page-score">🔍 ${r.count} whole-word match${r.count !== 1 ? 'es' : ''}</div>
+                `;
+                oldListEl.appendChild(li);
+                totalOldMatches += r.count;
+            });
+            // if all counts zero, we already handled above; but if some >0 we show only those? We'll show all entries with count 0? we filtered them out. Let's keep only >0 (but if all zero handled). 
+            // However if there is a mix, we want to show all pages? Better show all, but with count 0 they are uninteresting. We'll show pages with count>0 only, as normal search engines.
+            // but we already looped and skipped count===0. So fine.
+            // But if there are no count>0 we show empty message (handled).
+        }
+
+        // ---- surfer way ----
+        const surferResults = surferRanking();
+        surferListEl.innerHTML = '';
+        // compute max score for relative bar? Not necessary, but display percentage.
+        surferResults.forEach(r => {
+            const li = document.createElement('li');
+            li.className = 'result-item';
+            const percent = (r.surferScore * 100).toFixed(2);
+            li.innerHTML = `
+                <div class="page-title">${escapeHtml(pages[r.pageId].url)}</div>
+                <div class="page-url">page ${r.pageId}</div>
+                <div class="page-score">🌊 surfer score: ${percent}%</div>
+            `;
+            surferListEl.appendChild(li);
+        });
+
+        // debug info: show total visits etc.
+        debugEl.textContent = `⚡ surfer: 5,000 walks × 30 steps · teleport 0.15 · query: "${query}"`;
+    }
+
+    // tiny helper to escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // --------------------------------------------------------------
+    //  Initial search on page load
+    // --------------------------------------------------------------
+    window.addEventListener('load', () => {
+        const input = document.getElementById('searchInput');
+        const btn = document.getElementById('searchBtn');
+        // prefill with "google" and trigger
+        input.value = 'google';
+        renderRankings('google');
+
+        btn.addEventListener('click', () => {
+            renderRankings(input.value);
+        });
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                renderRankings(input.value);
+            }
+        });
+    });
+</script>
+
+<!-- ============================================================ -->
+<!--  DATA PLACED AT THE END AS REQUESTED (redundant, but visible) -->
+<!--  Already used in script, but we keep a comment copy for clarity -->
+<!-- ============================================================ -->
+<script type="text/plain" id="data-dump" style="display:none;">
+    page,url,text,links_to
+    1,http://www.google.com,"Google is the best search engine. Google helps you find web pages. Page rank is used by Google.",2;3;4
+    2,http://www.yahoo.com,"Yahoo is a web portal and search engine. You can search the web. Yahoo has many links.",1;3;5
+    3,http://www.altavista.com,"AltaVista was a popular search engine. It could search the web. AltaVista was fast.",1;2;4;5
+    4,http://www.webcrawler.com,"WebCrawler is a search engine. It crawls the web. WebCrawler finds pages.",2;3
+    5,http://www.lycos.com,"Lycos is a search engine and web portal. Lycos helps you surf the web. Surf the web with Lycos.",1;4
+</script>
+</body>
+</html>
